@@ -59,7 +59,7 @@ fall_counter = 0
 current_rotation = 0
 next_piece_shape = random.randint(0, len(SHAPES) - 1)
 held_piece_shape = None
-
+game_over = False
 
 # Setting up the clock for frame rate
 clock = pygame.time.Clock()
@@ -67,7 +67,7 @@ start_time = time.time()
 
 #Defining Functions
 def handle_events():
-    global WIDTH, HEIGHT, current_rotation, current_piece_pos, held_piece_shape, current_piece_shape, next_piece_shape
+    global WIDTH, HEIGHT, current_rotation, current_piece_pos, held_piece_shape, current_piece_shape, next_piece_shape, game_over
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -106,6 +106,14 @@ def handle_events():
                         held_piece_shape = temp
                     current_piece_pos = [GRID_WIDTH // 2, 0]  
                     current_rotation = 0
+            elif event.key == pygame.K_r and game_over:
+                board = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
+                score = 0
+                current_piece_shape = None
+                held_piece_shape = None
+                next_piece_shape = random.randint(0, len(SHAPES) - 1)
+                game_over = False
+                start_time = time.time()
 
 def calculate_grid():
     global CELL_SIZE, grid_pixel_width, grid_pixel_height, grid_x_offset, grid_y_offset
@@ -149,7 +157,7 @@ def check_lines():
         score += lines_cleared * 100  # 100 points per line
 
 def update():
-    global elapsed_time, current_piece_shape, current_piece_pos, fall_counter, current_rotation, next_piece_shape, score, held_piece_shape
+    global elapsed_time, current_piece_shape, current_piece_pos, fall_counter, current_rotation, next_piece_shape, score, held_piece_shape, game_over
     elapsed_time = time.time() - start_time
     if current_piece_shape is not None:
         fall_counter += 1
@@ -167,6 +175,8 @@ def update():
         next_piece_shape = random.randint(0, len(SHAPES) - 1)
         current_piece_pos = [GRID_WIDTH // 2, 0]
         current_rotation = 0
+        if not can_move(0, 0):
+            game_over = True
 
 def render():
     global current_piece_shape, current_piece_pos, current_rotation, held_piece_shape
@@ -223,7 +233,9 @@ def render():
                 px = grid_x_offset + x * CELL_SIZE
                 py = grid_y_offset + y * CELL_SIZE
                 pygame.draw.rect(screen, color, (px, py, CELL_SIZE, CELL_SIZE))
-
+    if game_over:
+        game_over_text = font.render("GAME OVER! Press R to Restart", True, (255, 0, 0))
+        screen.blit(game_over_text, (WIDTH // 2 -150, HEIGHT // 2))
     pygame.display.flip()
 
 calculate_grid()
